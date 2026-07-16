@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:renttie/constants/app_colors.dart';
-import 'package:renttie/view/auth_choice/auth_choice.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:renttie/core/constants/app_colors.dart';
+import 'package:renttie/core/constants/app_radius.dart';
+import 'package:renttie/core/constants/app_spacing.dart';
+import 'package:renttie/core/constants/app_typography.dart';
+import 'package:renttie/core/router/app_refresh.dart';
+import 'package:renttie/core/router/app_routes.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -37,15 +42,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   ];
 
   Future<void> _finishOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isFirstLaunch', false);
-
+    await context.read<AppRouterRefresh>().completeOnboarding();
     if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AuthChoicePage()),
-    );
+    context.go(AppRoutes.authChoice);
   }
 
   void nextPage() {
@@ -80,19 +79,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
+                  onPageChanged: (index) => setState(() => currentPage = index),
                   itemCount: onboardingData.length,
-                  onPageChanged: (index) {
-                    setState(() => currentPage = index);
-                  },
-                  itemBuilder: (context, index) {
-                    return _buildPageContent(context, onboardingData[index]);
-                  },
+                  itemBuilder: (context, index) =>
+                      _buildPageContent(context, onboardingData[index]),
                 ),
               ),
-              _buildDotIndicator(context),
-              const SizedBox(height: 32),
-              _buildActionButton(context),
-              const SizedBox(height: 16),
+              _buildIndicators(context),
+              const SizedBox(height: AppSpacing.xxl),
+              _buildNextButton(context),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
@@ -102,65 +98,50 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Widget _buildSkipButton(BuildContext context) {
     return Align(
-      alignment: Alignment.topRight,
+      alignment: Alignment.centerRight,
       child: Padding(
-        padding: const EdgeInsets.only(right: 20.0, top: 10.0),
+        padding: const EdgeInsets.only(
+          right: AppSpacing.xl,
+          top: AppSpacing.md,
+        ),
         child: TextButton(
           onPressed: _finishOnboarding,
-          child: const Text(
-            'Geç',
-            style: TextStyle(
-              color: AppColors.secondary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          child: Text(
+            'Atla',
+            style: AppTypography.bodyLarge(
+              color: AppColors.textSecondary(context),
+            ).copyWith(fontWeight: AppTypography.semiBold),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPageContent(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildPageContent(BuildContext context, Map<String, dynamic> data) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40.0),
+      padding: AppSpacing.horizontal(AppSpacing.huge),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Icon(
-                Icons.blur_circular,
-                size: 280,
-                color: AppColors.secondary.withValues(alpha: 0.15),
-              ),
-              Icon(
-                item['icon'] as IconData,
-                size: 160,
-                color: AppColors.secondary,
-              ),
-            ],
+          Icon(
+            data['icon'] as IconData,
+            size: 100,
+            color: AppColors.secondary,
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: AppSpacing.xxxl),
           Text(
-            item['title'] as String,
+            data['title'] as String,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
+            style: AppTypography.headline(
               color: AppColors.textPrimary(context),
-              height: 1.2,
-            ),
+            ).copyWith(fontSize: 26),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
           Text(
-            item['description'] as String,
+            data['description'] as String,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: AppTypography.bodyLarge(
               color: AppColors.textSecondary(context),
-              fontSize: 16,
-              height: 1.5,
-              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -168,30 +149,31 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  Widget _buildDotIndicator(BuildContext context) {
+  Widget _buildIndicators(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         onboardingData.length,
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          height: 8,
-          width: currentPage == index ? 24 : 8,
+          margin: AppSpacing.horizontal(AppSpacing.xs + 1),
+          height: AppSpacing.sm,
+          width: currentPage == index ? AppSpacing.xxl : AppSpacing.sm,
           decoration: BoxDecoration(
             color: currentPage == index
                 ? AppColors.secondary
-                : AppColors.textHint(context).withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(12),
+                : AppColors.border(context),
+            borderRadius: AppRadius.mdAll,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildActionButton(BuildContext context) {
+  Widget _buildNextButton(BuildContext context) {
+    final isLast = currentPage == onboardingData.length - 1;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: AppSpacing.horizontal(AppSpacing.xxl),
       child: SizedBox(
         width: double.infinity,
         height: 56,
@@ -200,17 +182,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.secondary,
             foregroundColor: AppColors.darkTextPrimary,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.pillAll),
           ),
           child: Text(
-            currentPage == onboardingData.length - 1 ? 'Hemen Başla' : 'İleri',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            isLast ? 'Başla' : 'Devam',
+            style: AppTypography.button(color: AppColors.darkTextPrimary),
           ),
         ),
       ),

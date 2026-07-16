@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1076798630058",
+    "project_id": "renttie-app",
+    "storage_bucket": "renttie-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076798630058:android:8d0ff084ca1a11e9a788d3",
+        "android_client_info": {
+          "package_name": "com.example.renttie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqkY_jDwp4W-3JhyjMdhukX50ehHkDuNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076798630058:android:18cb19749bcba48aa788d3",
+        "android_client_info": {
+          "package_name": "com.renttie.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqkY_jDwp4W-3JhyjMdhukX50ehHkDuNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
